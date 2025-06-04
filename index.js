@@ -2,18 +2,21 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-require('dotenv').config(); // Load .env file
+require('dotenv').config(); // Load environment variables
 
-const { processNprSubject } = require('./dedupe'); // Import function
+const { processNprSubject } = require('./dedupe'); // Your dedupe function
 
-app.use(express.json()); // Parse JSON body
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-// Handle POST requests to /npr
+// POST endpoint to receive NPR email subject
 app.post('/npr', async (req, res) => {
+  console.log('Received POST /npr with body:', req.body);
+
   const subject = req.body.subject;
 
-  // Validate subject
   if (!subject) {
+    console.warn('Missing subject in request body');
     return res.status(400).json({ error: 'Missing subject' });
   }
 
@@ -21,12 +24,12 @@ app.post('/npr', async (req, res) => {
     const result = await processNprSubject(subject);
     res.json(result);
   } catch (err) {
-    console.error(err);
+    console.error('Error processing subject:', err);
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
-// Start the server
+// Start server
 app.listen(PORT, () => {
   console.log(`NPR backend running on port ${PORT}`);
 });
